@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@theme static {
+  --color-marigold: #ffc21a;
+  --color-ink: #16130e;
+  --color-paper: #f3f1ea;
+  --color-tomato: #b92c15;
+}
+
+@theme inline {
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+/* Poster-style condensed type for the wordmark and discounts. */
+@utility display {
+  font-weight: 800;
+  font-stretch: 62%;
+  text-transform: uppercase;
+  line-height: 0.9;
+}
+
+/* Scalloped bottom edge on the header, like a torn-off coupon. */
+@utility scalloped {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -9px;
+    height: 10px;
+    background: radial-gradient(circle at 10px 0, var(--color-marigold) 9px, transparent 9.5px)
+      repeat-x;
+    background-size: 20px 10px;
+  }
+}
+
+/* Dashed tear line with a notch cut out of each side of the ticket. */
+@utility perforation {
+  position: relative;
+  border-top: 2px dashed color-mix(in srgb, var(--color-ink) 20%, transparent);
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: -11px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--color-paper);
+  }
+
+  &::before {
+    left: -10px;
+  }
+
+  &::after {
+    right: -10px;
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
