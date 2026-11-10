@@ -1,26 +1,12 @@
 import { stores } from "../data/stores";
+import { assertDay, assertHttpUrl, endOfDay, formatDay } from "./data-helpers";
 import type { LivePromo, Promo, Store } from "./types";
 
 const DAY_MS = 86_400_000;
 const ENDING_SOON_DAYS = 3;
 
-const dateLabel = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-  timeZone: "UTC",
-});
-
-const expiryTime = (expires: string) => Date.parse(`${expires}T23:59:59.999Z`);
-
 export function isExpired(promo: Promo, now = Date.now()) {
-  return promo.expires !== undefined && expiryTime(promo.expires) < now;
-}
-
-function assertHttpUrl(value: string, label: string) {
-  if (!URL.canParse(value) || !/^https?:$/.test(new URL(value).protocol)) {
-    throw new Error(`${label} must be a full link starting with http:// or https://`);
-  }
+  return promo.expires !== undefined && endOfDay(promo.expires) < now;
 }
 
 /** Fails the build with a readable message if data/stores.ts has a mistake. */
@@ -40,12 +26,7 @@ function indexPromos(allStores: Store[]) {
       if (index.has(promo.id)) throw new Error(`${label} is used more than once`);
       assertHttpUrl(promo.url, `${label} url`);
       if (promo.affiliateUrl) assertHttpUrl(promo.affiliateUrl, `${label} affiliateUrl`);
-      if (
-        promo.expires !== undefined &&
-        (!/^\d{4}-\d{2}-\d{2}$/.test(promo.expires) || Number.isNaN(expiryTime(promo.expires)))
-      ) {
-        throw new Error(`${label} expires must look like 2026-12-31`);
-      }
+      if (promo.expires !== undefined) assertDay(promo.expires, `${label} expires`);
       index.set(promo.id, { promo, store });
     }
   }
@@ -65,8 +46,8 @@ export function getLivePromos(now = Date.now()): LivePromo[] {
     .filter(({ promo }) => !isExpired(promo, now))
     .sort(
       (a, b) =>
-        (a.promo.expires ? expiryTime(a.promo.expires) : Infinity) -
-        (b.promo.expires ? expiryTime(b.promo.expires) : Infinity),
+        (a.promo.expires ? endOfDay(a.promo.expires) : Infinity) -
+        (b.promo.expires ? endOfDay(b.promo.expires) : Infinity),
     )
     .map(({ promo, store }) => ({
       id: promo.id,
@@ -75,11 +56,10 @@ export function getLivePromos(now = Date.now()): LivePromo[] {
       headline: promo.headline,
       description: promo.description,
       code: promo.code,
-      expiresLabel: promo.expires
-        ? `Ends ${dateLabel.format(expiryTime(promo.expires))}`
-        : "No end date",
+      expiresLabel:
+        promo.note ?? (promo.expires ? `Ends ${formatDay(promo.expires)}` : "No end date"),
       endingSoon:
-        promo.expires !== undefined &&
-        expiryTime(promo.expires) - now < ENDING_SOON_DAYS * DAY_MS,
+        promo.expires !== undefined && endOfDay(promo.expires) - now < ENDING_SOON_DAYS * DAY_MS,
+      blackFriday: promo.blackFriday === true,
     }));
 }

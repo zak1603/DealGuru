@@ -3,154 +3,213 @@ import type { Store } from "../lib/types";
 /**
  * Every store and promo on the site lives in this file.
  *
- * THE ENTRIES BELOW ARE SAMPLES. The stores are made up, the links go to
- * example.com, and YOUR_ID is a placeholder. Replace them with real promos and
- * the tracking details from your affiliate accounts before going live.
+ * These are real offers, checked on 10 November 2026 against each store's own
+ * page or South African news reports. Offers change fast, so recheck them and
+ * remove any that have ended. Never add a code you can't confirm.
  *
- * Three ways to earn commission, shown in the samples:
- *   1. affiliate: { template: "...{url}..." }    a network deep link (Awin, CJ, Rakuten, Impact)
- *   2. affiliate: { param: "tag", value: "..." } your ID added to the store's link (Amazon-style)
- *   3. affiliateUrl on one promo                 a ready-made link copied from your network
+ * None of these stores has affiliate tracking yet, so links go straight to the
+ * store and earn nothing. Once you've joined a store's programme, add one of:
+ *   1. affiliate: { template: "...{url}..." }    a network deep link
+ *   2. affiliate: { param: "tag", value: "..." } your ID added to the store's link
+ *   3. affiliateUrl on one promo                 a ready-made link from your network
+ *
+ * blackFriday: true also lists a promo on the Black Friday page.
+ * note replaces the "Ends ..." text when the end date isn't confirmed.
  *
  * Mistakes here (a duplicate id, a broken link) stop the site from building and
  * tell you which promo to fix, so a bad entry can't reach shoppers.
  */
 export const stores: Store[] = [
   {
-    slug: "harbor-pine",
-    name: "Harbor & Pine",
-    affiliate: {
-      template: "https://example.com/network-click?publisher=YOUR_ID&destination={url}",
-    },
+    slug: "takealot",
+    name: "Takealot",
     promos: [
       {
-        id: "harbor-winter-25",
-        headline: "25% off",
-        description: "All winter jackets and outerwear.",
-        code: "WARMUP25",
-        url: "https://example.com/harbor-pine/winter",
-        expires: "2026-12-31",
+        id: "takealot-black-november",
+        headline: "Up to 50% off",
+        description: "Black November specials on selected products, with new deals every week.",
+        url: "https://www.takealot.com/deals",
+        expires: "2026-11-23",
+        blackFriday: true,
       },
       {
-        id: "harbor-free-returns",
-        headline: "Free returns",
-        description: "On every order over $50, no code needed.",
-        url: "https://example.com/harbor-pine/returns",
+        id: "takealot-blue-dot-sale",
+        headline: "Blue Dot Sale",
+        description: "Takealot's main Black Friday event, with exclusive deals from midnight.",
+        url: "https://www.takealot.com/blue-dot-sale",
+        expires: "2026-11-30",
+        note: "Starts 27 Nov 2026",
+        blackFriday: true,
       },
     ],
   },
   {
-    slug: "voltbox",
-    name: "VoltBox Electronics",
-    affiliate: { param: "tag", value: "YOUR_ID-20" },
+    slug: "superbalist",
+    name: "Superbalist",
     promos: [
       {
-        id: "voltbox-headphones-40",
-        headline: "40% off",
-        description: "Wireless headphones and earbuds.",
-        code: "QUIET40",
-        url: "https://example.com/voltbox/audio",
-        expires: "2026-11-13",
+        id: "superbalist-black-friday",
+        headline: "Up to 80% off",
+        description: "Selected fashion, sneakers, beauty and homeware on the two biggest sale days.",
+        url: "https://superbalist.com/blackfriday-sale",
+        expires: "2026-11-30",
+        note: "27 and 30 Nov 2026 only",
+        blackFriday: true,
       },
       {
-        id: "voltbox-20-back",
-        headline: "$20 off",
-        description: "Any order of $150 or more.",
-        code: "VOLT20",
-        url: "https://example.com/voltbox/sale",
-        expires: "2027-01-15",
-      },
-      {
-        id: "voltbox-cables",
-        headline: "Buy 2, get 1",
-        description: "Mix and match chargers and cables.",
-        url: "https://example.com/voltbox/cables",
-        expires: "2026-12-05",
+        id: "superbalist-black-november",
+        headline: "Up to 70% off",
+        description: "Black November sale on fashion and sneakers, with new markdowns daily.",
+        url: "https://superbalist.com/blackfriday-sale",
+        expires: "2026-11-30",
+        blackFriday: true,
       },
     ],
   },
   {
-    slug: "fern-table",
-    name: "Fern & Table",
-    affiliate: {
-      template: "https://example.com/network-click?publisher=YOUR_ID&destination={url}",
-    },
+    slug: "woolworths",
+    name: "Woolworths",
     promos: [
       {
-        id: "fern-cookware-30",
+        id: "woolworths-fashion",
         headline: "30% off",
-        description: "Cast iron and stainless cookware.",
-        code: "SIZZLE30",
-        url: "https://example.com/fern-table/cookware",
-        expires: "2026-12-20",
+        description: "Selected fashion, footwear and accessories.",
+        url: "https://www.woolworths.co.za/browse/black-friday",
+        expires: "2026-11-18",
+        blackFriday: true,
       },
       {
-        id: "fern-free-shipping",
-        headline: "Free shipping",
-        description: "Sitewide on orders over $35.",
-        code: "SHIPFREE",
-        url: "https://example.com/fern-table",
-      },
-    ],
-  },
-  {
-    slug: "stride-co",
-    name: "Stride Co.",
-    promos: [
-      {
-        id: "stride-running-35",
-        headline: "35% off",
-        description: "Last season's running shoes.",
-        url: "https://example.com/stride-co/running",
-        affiliateUrl: "https://example.com/network-click?offer=12345&publisher=YOUR_ID",
-        expires: "2026-11-12",
-      },
-      {
-        id: "stride-first-order",
-        headline: "15% off",
-        description: "Your first order when you join the mailing list.",
-        code: "HELLO15",
-        url: "https://example.com/stride-co/join",
-        affiliateUrl: "https://example.com/network-click?offer=67890&publisher=YOUR_ID",
-      },
-    ],
-  },
-  {
-    slug: "glow-theory",
-    name: "Glow Theory",
-    affiliate: {
-      template: "https://example.com/network-click?publisher=YOUR_ID&destination={url}",
-    },
-    promos: [
-      {
-        id: "glow-skincare-20",
+        id: "woolworths-home-beauty",
         headline: "20% off",
-        description: "All skincare sets.",
-        code: "GLOW20",
-        url: "https://example.com/glow-theory/sets",
-        expires: "2026-12-24",
-      },
-      {
-        id: "glow-gift",
-        headline: "Free gift",
-        description: "A travel-size serum with orders over $60.",
-        url: "https://example.com/glow-theory/gift",
-        expires: "2027-02-01",
+        description: "Selected homeware and beauty products.",
+        url: "https://www.woolworths.co.za/browse/black-friday",
+        expires: "2026-11-30",
+        note: "End date varies, check in store",
+        blackFriday: true,
       },
     ],
   },
   {
-    slug: "little-otter",
-    name: "Little Otter Toys",
-    affiliate: { param: "ref", value: "YOUR_ID" },
+    slug: "makro",
+    name: "Makro",
     promos: [
       {
-        id: "otter-blocks-50",
-        headline: "50% off",
-        description: "Wooden blocks and building sets.",
-        code: "STACK50",
-        url: "https://example.com/little-otter/blocks",
-        expires: "2026-12-15",
+        id: "makro-black-friday",
+        headline: "Up to 50% off",
+        description: "Black Friday deals on big-ticket items, tech, appliances and essentials.",
+        url: "https://www.makro.co.za/black-friday-store",
+        expires: "2026-11-30",
+        blackFriday: true,
+      },
+    ],
+  },
+  {
+    slug: "game",
+    name: "Game",
+    promos: [
+      {
+        id: "game-black-friday",
+        headline: "Up to 50% off",
+        description: "Month-long Black Friday deals on tech, appliances and household goods.",
+        url: "https://www.game.co.za/event/black-friday",
+        expires: "2026-11-30",
+        blackFriday: true,
+      },
+    ],
+  },
+  {
+    slug: "builders",
+    name: "Builders",
+    promos: [
+      {
+        id: "builders-black-friday",
+        headline: "Up to 50% off",
+        description: "Month-long Black Friday deals on tools, braais and home improvement.",
+        url: "https://www.builders.co.za/black-friday",
+        expires: "2026-11-30",
+        blackFriday: true,
+      },
+    ],
+  },
+  {
+    slug: "amazon-za",
+    name: "Amazon South Africa",
+    promos: [
+      {
+        id: "amazon-early-black-friday",
+        headline: "Up to 50% off",
+        description: "Early Black Friday deals on electronics, headphones, beauty, tools and home.",
+        url: "https://www.amazon.co.za/events/blackfriday",
+        expires: "2026-11-30",
+        note: "End date not announced",
+        blackFriday: true,
+      },
+    ],
+  },
+  {
+    slug: "bash",
+    name: "Bash",
+    promos: [
+      {
+        id: "bash-black-friday",
+        headline: "Up to 75% off",
+        description: "Black Friday deals on selected clothing, footwear and accessories.",
+        url: "https://bash.com/black-friday",
+        expires: "2026-11-30",
+        note: "End date not announced",
+        blackFriday: true,
+      },
+    ],
+  },
+  {
+    slug: "dis-chem",
+    name: "Dis-Chem",
+    promos: [
+      {
+        id: "dischem-sonicare",
+        headline: "R450 off",
+        description: "Philips Sonicare 2000 toothbrush, now R449.99 (was R899.99).",
+        url: "https://www.dischem.co.za/promotions/black-friday",
+        expires: "2026-11-30",
+        note: "While stocks last",
+        blackFriday: true,
+      },
+      {
+        id: "dischem-earbuds",
+        headline: "R200 off",
+        description: "Motorola Wireless Earbuds 100, now R599 (was R799).",
+        url: "https://www.dischem.co.za/promotions/black-friday",
+        expires: "2026-11-30",
+        note: "While stocks last",
+        blackFriday: true,
+      },
+    ],
+  },
+  {
+    slug: "hificorp",
+    name: "HiFiCorp",
+    promos: [
+      {
+        id: "hificorp-black-november",
+        headline: "Black November",
+        description: "Extended Black Friday deals all month on tech and appliances.",
+        url: "https://www.hificorp.co.za/",
+        expires: "2026-11-30",
+        blackFriday: true,
+      },
+    ],
+  },
+  {
+    slug: "incredible",
+    name: "Incredible",
+    promos: [
+      {
+        id: "incredible-black-november",
+        headline: "Black November",
+        description: "Extended Black Friday deals all month on laptops, tech and appliances.",
+        url: "https://www.incredible.co.za/",
+        expires: "2026-11-30",
+        blackFriday: true,
       },
     ],
   },

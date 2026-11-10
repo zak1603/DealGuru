@@ -17,8 +17,12 @@ export type Promo = {
   url: string;
   /** A ready-made tracking link for this promo. Overrides the store's affiliate setting. */
   affiliateUrl?: string;
-  /** Last valid day, as "YYYY-MM-DD" (UTC). Leave out if it has no end date. */
+  /** Last valid day, as "YYYY-MM-DD" (South African time). Leave out if it has no end date. */
   expires?: string;
+  /** Replaces the "Ends ..." text, e.g. when the end date isn't confirmed. */
+  note?: string;
+  /** Also lists this promo on the Black Friday page. */
+  blackFriday?: boolean;
 };
 
 export type Store = {
@@ -39,4 +43,41 @@ export type LivePromo = {
   code?: string;
   expiresLabel: string;
   endingSoon: boolean;
+  blackFriday: boolean;
+};
+
+export type Ad = {
+  id: string;
+  advertiser: string;
+  headline: string;
+  description: string;
+  code?: string;
+  /** Where the ad sends people. */
+  url: string;
+  /** "featured" pins a card above the deals. "popup" slides in at the bottom of the screen. */
+  placement: "featured" | "popup";
+  /** First day the ad runs, as "YYYY-MM-DD" (South African time). */
+  starts: string;
+  /** Last day the ad runs, as "YYYY-MM-DD" (South African time). */
+  ends: string;
+};
+
+export type LiveAd = {
+  id: string;
+  advertiser: string;
+  headline: string;
+  description: string;
+  code?: string;
+  href: string;
+  endsLabel: string;
+};
+
+export type AdPackage = {
+  id: string;
+  name: string;
+  /** Shown as written, e.g. "R499". Must match the price of the payment link. */
+  price: string;
+  description: string;
+  /** A payment link from Payfast, Yoco or PayPal. While empty, the button reads "Coming soon". */
+  paymentLink?: string;
 };

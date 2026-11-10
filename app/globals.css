@@ -1,10 +1,74 @@
 @import "tailwindcss";
 
 @theme static {
-  --color-marigold: #ffc21a;
+  --color-marigold: #ffb81c;
+  --color-springbok: #007749;
   --color-ink: #16130e;
   --color-paper: #f3f1ea;
   --color-tomato: #b92c15;
+
+  --animate-popup: popup-in 0.35s ease-out;
+  --animate-rise: rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-letter: letter 0.6s cubic-bezier(0.2, 0.9, 0.25, 1.25) both;
+  --animate-tick: tick 0.3s ease-out;
+  --animate-ticker: ticker 105s linear infinite;
+  --animate-glow: glow 2.4s ease-in-out infinite;
+
+  @keyframes popup-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.98);
+    }
+  }
+
+  @keyframes letter {
+    from {
+      opacity: 0;
+      transform: translateY(0.45em) rotate(5deg);
+    }
+  }
+
+  @keyframes tick {
+    from {
+      opacity: 0.2;
+      transform: translateY(-35%);
+    }
+  }
+
+  @keyframes ticker {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes glow {
+    50% {
+      box-shadow: 0 0 0 8px rgb(255 184 28 / 0.2);
+    }
+  }
+}
+
+@keyframes bead-drift {
+  to {
+    background-position-x: 84px;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: 0 0;
+  }
 }
 
 @theme inline {
@@ -16,9 +80,11 @@ body {
   color: var(--color-ink);
 }
 
+/* Two colors so the focus ring shows on both light and black backgrounds. */
 :focus-visible {
   outline: 3px solid var(--color-ink);
   outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--color-marigold);
 }
 
 /* Poster-style condensed type for the wordmark and discounts. */
@@ -29,19 +95,40 @@ body {
   line-height: 0.9;
 }
 
-/* Scalloped bottom edge on the header, like a torn-off coupon. */
-@utility scalloped {
+/* A strip of triangles in South African flag colours, inspired by beadwork. */
+@utility beadwork {
   position: relative;
 
   &::after {
     content: "";
     position: absolute;
     inset-inline: 0;
-    bottom: -9px;
-    height: 10px;
-    background: radial-gradient(circle at 10px 0, var(--color-marigold) 9px, transparent 9.5px)
+    bottom: -14px;
+    height: 14px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='14'%3E%3Crect width='84' height='14' fill='%23fff'/%3E%3Cpath fill='%23e03c31' d='M0 14 7 0l7 14z'/%3E%3Cpath fill='%23ffb81c' d='M14 14l7-14 7 14z'/%3E%3Cpath fill='%23007749' d='M28 14l7-14 7 14z'/%3E%3Cpath fill='%23001489' d='M42 14l7-14 7 14z'/%3E%3Cpath fill='%23ffb81c' d='M56 14l7-14 7 14z'/%3E%3Cpath fill='%2316130e' d='M70 14l7-14 7 14z'/%3E%3C/svg%3E")
       repeat-x;
-    background-size: 20px 10px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    &::after {
+      animation: bead-drift 12s linear infinite;
+    }
+  }
+}
+
+/* A band of light that sweeps across gold headline text. */
+@utility shimmer {
+  @media (prefers-reduced-motion: no-preference) {
+    background: linear-gradient(
+        100deg,
+        var(--color-marigold) 42%,
+        #fff2c2 50%,
+        var(--color-marigold) 58%
+      )
+      0 0 / 200% 100%;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 5s linear infinite;
   }
 }
 

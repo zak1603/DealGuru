@@ -24,11 +24,11 @@ export function CopyCode({ code }: { code: string }) {
     <button
       type="button"
       onClick={copy}
-      className="flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-2 rounded-lg border-2 border-dashed border-ink/35 px-3 py-2.5 font-mono text-sm font-semibold transition-colors hover:border-ink hover:bg-marigold/25"
+      className="flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-2 rounded-lg border-2 border-dashed border-ink/35 px-3 py-2.5 font-mono text-sm font-semibold transition hover:border-ink hover:bg-marigold/25 active:scale-[0.98] motion-reduce:transform-none"
     >
       <span className="truncate">{code}</span>
       {copied ? (
-        <Check className="size-4 shrink-0" aria-hidden />
+        <Check className="size-4 shrink-0 animate-tick text-springbok motion-reduce:animate-none" aria-hidden />
       ) : (
         <Copy className="size-4 shrink-0" aria-hidden />
       )}

@@ -1,35 +1,46 @@
 import { cacheLife } from "next/cache";
+import { AdPopup } from "@/components/ad-popup";
+import { AnimatedWord } from "@/components/animated-word";
+import { BlackFridayBanner } from "@/components/black-friday-banner";
 import { PromoBrowser } from "@/components/promo-browser";
+import { getLiveAds } from "@/lib/ads";
+import { isBlackFridayOver } from "@/lib/campaign";
 import { getLivePromos } from "@/lib/promos";
 
 export default async function Home() {
   "use cache";
-  // Re-checks expiry dates hourly so ended promos drop off without a redeploy.
+  // Re-checks dates hourly so ended promos and ads drop off without a redeploy.
   cacheLife("hours");
-
-  const promos = getLivePromos();
 
   return (
     <>
-      <header className="scalloped bg-marigold">
-        <div className="mx-auto max-w-6xl px-5 pt-8 pb-9 sm:pt-12 sm:pb-12">
-          <h1 className="display text-[clamp(4.5rem,15vw,10rem)]">Deal Guru</h1>
-          <p className="mt-3 max-w-xl text-lg font-medium sm:text-xl">
-            Promo codes and sales from the stores you shop, all in one place.
+      <header className="beadwork bg-springbok text-white">
+        <div className="mx-auto max-w-6xl px-5 pt-5 pb-7 sm:pt-8 sm:pb-10">
+          <p className="mb-2 animate-rise text-lg font-bold motion-reduce:animate-none sm:text-xl">
+            Howzit, Mzansi!
+          </p>
+          <h1 className="display text-[clamp(4rem,12vw,7.5rem)] text-marigold">
+            <AnimatedWord text="Deal Guru" />
+          </h1>
+          <p
+            className="mt-3 max-w-xl animate-rise text-lg font-medium motion-reduce:animate-none sm:text-xl"
+            style={{ animationDelay: "350ms" }}
+          >
+            Lekker deals from South Africa&apos;s favourite stores, all in one place.
           </p>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-5 pt-6 pb-16">
-        <PromoBrowser promos={promos} />
+      <main className="mx-auto w-full max-w-6xl flex-1 px-5 pt-11 pb-16">
+        {!isBlackFridayOver() && (
+          <div className="mb-3 animate-rise motion-reduce:animate-none" style={{ animationDelay: "250ms" }}>
+            <BlackFridayBanner />
+          </div>
+        )}
+        <PromoBrowser promos={getLivePromos()} featuredAds={getLiveAds("featured")} />
       </main>
 
-      <footer className="border-t border-ink/15">
-        <p className="mx-auto max-w-6xl px-5 py-6 text-sm text-ink/70">
-          Deal Guru may earn a commission when you buy through links on this site, at no extra cost
-          to you. Offers are set by each store and can change without notice.
-        </p>
-      </footer>
+      <AdPopup ads={getLiveAds("popup")} />
     </>
   );
 }

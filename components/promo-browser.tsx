@@ -1,51 +1,9 @@
 "use client";
 
-import { ArrowUpRight, Clock, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useState } from "react";
-import { CopyCode } from "@/components/copy-code";
-import type { LivePromo } from "@/lib/types";
-
-function PromoCard({ promo }: { promo: LivePromo }) {
-  return (
-    <article className="flex flex-col rounded-2xl bg-white shadow-[0_1px_2px_rgb(22_19_14/0.08),0_12px_24px_-16px_rgb(22_19_14/0.35)]">
-      <div className="flex flex-1 flex-col p-5">
-        <div className="flex items-center justify-between gap-3">
-          <p className="truncate text-sm font-semibold">{promo.storeName}</p>
-          {promo.endingSoon && (
-            <span className="flex shrink-0 items-center gap-1 text-xs font-bold text-tomato">
-              <Clock className="size-3.5" aria-hidden />
-              Ending soon
-            </span>
-          )}
-        </div>
-        <h2 className="display mt-4 text-5xl">{promo.headline}</h2>
-        <p className="mt-3 flex-1 text-[15px] leading-snug text-ink/80">{promo.description}</p>
-        <p className="mt-3 text-xs font-medium text-ink/60">{promo.expiresLabel}</p>
-      </div>
-
-      <div className="perforation flex items-stretch gap-2 p-4">
-        {promo.code ? (
-          <CopyCode code={promo.code} />
-        ) : (
-          <p className="flex flex-1 items-center px-1 text-sm font-medium text-ink/60">
-            No code needed
-          </p>
-        )}
-        {/* A plain link, because Next's <Link> would prefetch and fake affiliate clicks. */}
-        <a
-          href={`/api/redirect/${promo.id}`}
-          target="_blank"
-          rel="sponsored nofollow noopener"
-          aria-label={`Get deal: ${promo.headline} at ${promo.storeName} (opens in a new tab)`}
-          className="flex min-h-11 shrink-0 items-center gap-1 rounded-lg bg-ink px-4 py-2.5 text-sm font-bold text-marigold transition-transform hover:-translate-y-0.5"
-        >
-          Get deal
-          <ArrowUpRight className="size-4" aria-hidden />
-        </a>
-      </div>
-    </article>
-  );
-}
+import { DealCard } from "@/components/deal-card";
+import type { LiveAd, LivePromo } from "@/lib/types";
 
 function StoreChip({
   label,
@@ -63,17 +21,23 @@ function StoreChip({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
-        active ? "bg-ink text-marigold" : "bg-white text-ink hover:bg-marigold/40"
+      className={`flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold transition active:scale-95 motion-reduce:transform-none ${
+        active ? "bg-springbok text-white" : "bg-white text-ink hover:bg-marigold/40"
       }`}
     >
       {label}
-      <span className={active ? "text-marigold/70" : "text-ink/50"}>{count}</span>
+      <span className={active ? "text-white/75" : "text-ink/50"}>{count}</span>
     </button>
   );
 }
 
-export function PromoBrowser({ promos }: { promos: LivePromo[] }) {
+export function PromoBrowser({
+  promos,
+  featuredAds,
+}: {
+  promos: LivePromo[];
+  featuredAds: LiveAd[];
+}) {
   const [query, setQuery] = useState("");
   const [storeSlug, setStoreSlug] = useState<string | null>(null);
 
@@ -93,6 +57,8 @@ export function PromoBrowser({ promos }: { promos: LivePromo[] }) {
   });
 
   const isFiltered = words.length > 0 || storeSlug !== null;
+  // Someone narrowing down the list wants matches, so ads step aside.
+  const visibleAds = isFiltered ? [] : featuredAds;
 
   return (
     <>
@@ -106,7 +72,7 @@ export function PromoBrowser({ promos }: { promos: LivePromo[] }) {
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search stores or deals"
+            placeholder="Looking for something lekker?"
             aria-label="Search stores or deals"
             className="w-full rounded-xl border-2 border-ink bg-white py-2.5 pr-4 pl-11 text-base placeholder:text-ink/50"
           />
@@ -131,19 +97,44 @@ export function PromoBrowser({ promos }: { promos: LivePromo[] }) {
       </div>
 
       <p className="mt-3 text-sm font-medium text-ink/70" aria-live="polite">
-        {visible.length} {visible.length === 1 ? "promo" : "promos"}
+        {visible.length} lekker {visible.length === 1 ? "deal" : "deals"}
       </p>
 
       {visible.length > 0 ? (
         <div className="mt-3 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((promo) => (
-            <PromoCard key={promo.id} promo={promo} />
+          {visibleAds.map((ad, index) => (
+            <DealCard
+              key={ad.id}
+              revealIndex={index}
+              storeName={ad.advertiser}
+              headline={ad.headline}
+              description={ad.description}
+              code={ad.code}
+              note={ad.endsLabel}
+              href={ad.href}
+              flag="sponsored"
+            />
+          ))}
+          {visible.map((promo, index) => (
+            <DealCard
+              key={promo.id}
+              revealIndex={visibleAds.length + index}
+              storeName={promo.storeName}
+              headline={promo.headline}
+              description={promo.description}
+              code={promo.code}
+              note={promo.expiresLabel}
+              href={`/api/redirect/${promo.id}`}
+              flag={
+                promo.endingSoon ? "ending-soon" : promo.blackFriday ? "black-friday" : undefined
+              }
+            />
           ))}
         </div>
       ) : (
         <div className="mt-10 text-center">
           <p className="display text-4xl">
-            {isFiltered ? "No matching promos" : "No promos right now"}
+            {isFiltered ? "Eish, no matches" : "Eish, no deals right now"}
           </p>
           {isFiltered && (
             <button
@@ -152,10 +143,10 @@ export function PromoBrowser({ promos }: { promos: LivePromo[] }) {
                 setQuery("");
                 setStoreSlug(null);
               }}
-              className="mx-auto mt-4 flex cursor-pointer items-center gap-1 rounded-lg bg-ink px-4 py-2.5 text-sm font-bold text-marigold"
+              className="mx-auto mt-4 flex cursor-pointer items-center gap-1 rounded-lg bg-springbok px-4 py-2.5 text-sm font-bold text-white"
             >
               <X className="size-4" aria-hidden />
-              Clear filters
+              Start over
             </button>
           )}
         </div>
