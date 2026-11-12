@@ -2,6 +2,7 @@ import { cacheLife } from "next/cache";
 import { AdPopup } from "@/components/ad-popup";
 import { AnimatedWord } from "@/components/animated-word";
 import { BlackFridayBanner } from "@/components/black-friday-banner";
+import { JoinBanner } from "@/components/join-banner";
 import { PromoBrowser } from "@/components/promo-browser";
 import { getLiveAds } from "@/lib/ads";
 import { isBlackFridayOver } from "@/lib/campaign";
@@ -40,6 +41,7 @@ export default async function Home() {
           </div>
         )}
         <PromoBrowser promos={promos} featuredAds={getLiveAds("featured")} />
+        <JoinBanner />
       </main>
 
       <AdPopup ads={getLiveAds("popup")} />

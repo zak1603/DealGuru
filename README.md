@@ -43,7 +43,7 @@ Your clicks and earnings appear in your affiliate network's dashboard. The site 
 
 ## Black Friday
 
-Add `blackFriday: true` to any promo in [data/stores.ts](data/stores.ts) to list it on the `/black-friday` page. The banner and countdown switch off by themselves after Cyber Monday. For next year, update the dates in [lib/campaign.ts](lib/campaign.ts).
+Tick **Also show on the Black Friday page** on the admin page to list a deal on the `/black-friday` page. The banner and countdown switch off by themselves after Cyber Monday. For next year, update the dates in [lib/campaign.ts](lib/campaign.ts).
 
 ## Deals near you
 
@@ -57,6 +57,27 @@ node scripts/update-branches.mjs
 
 When you add a new store with physical shops, add its name to the list at the top of [scripts/update-branches.mjs](scripts/update-branches.mjs) and run it again.
 
+## Accounts and the weekly deals email
+
+Nobody needs an account to browse deals. Shoppers can sign up at `/login` if they want to, and tick **Email me the latest deals every week**. Those who tick it get a welcome email with today's deals once they've confirmed their email address. After that they get the newest deals every Thursday at 08:00. Every email has an unsubscribe link, and signed-in shoppers can also change their choice on the Privacy page.
+
+Every sign-up is listed in the **Sign-ups** section of the admin page, with when they joined and when they agreed to or stopped the newsletter. **Download as spreadsheet** saves the list as a CSV file.
+
+Emails are sent by [Brevo](https://www.brevo.com). Its free plan sends 300 emails a day in total, including sign-up and password emails. The admin page warns you when the newsletter list gets close to that.
+
+### One-time setup
+
+Sign-ups stay switched off until these steps are done.
+
+1. **Brevo:** sign up free with your Gmail address and complete your profile so Brevo lets you send. Under **Settings**, then **SMTP & API**, create an **API key** and copy your **SMTP login** and an **SMTP key**.
+2. **Supabase, sign-up emails:** in the `dealguru` project, go to **Authentication**, then **Emails**, then **SMTP Settings**. Turn on custom SMTP and enter host `smtp-relay.brevo.com`, port `587`, your Brevo SMTP login as the username, the SMTP key as the password, your Gmail address as the sender email, and `Deal Guru` as the sender name.
+3. **Supabase, links in emails:** go to **Authentication**, then **URL Configuration**. Set the Site URL to `https://dealguru.netlify.app` and add `https://dealguru.netlify.app/**` to the redirect URLs.
+4. **Supabase, the newsletter's key:** go to **Edge Functions**, then **Secrets**, and add `BREVO_API_KEY` with the API key from step 1. Paste it there, not into a chat or the code.
+5. **Database and newsletter program:** apply [supabase/migrations/20261112190000_signups_and_newsletter.sql](supabase/migrations/20261112190000_signups_and_newsletter.sql) and deploy the `newsletter` Edge Function from [supabase/functions/newsletter](supabase/functions/newsletter) with JWT verification turned off. The function checks every request itself.
+6. In [lib/supabase-config.ts](lib/supabase-config.ts), change `emailSignUpReady` to `true` and push.
+
+Without your own domain, Brevo sends from an address on `brevosend.com` in place of your Gmail, and emails are a little more likely to land in spam. Buying a domain and authenticating it in Brevo fixes that.
+
 ## Sign in with Google (one-time setup)
 
 Sign-in uses a free [Supabase](https://supabase.com) project called `dealguru`, which already has its table and access rules. Google sign-in needs switching on:
@@ -67,7 +88,7 @@ Sign-in uses a free [Supabase](https://supabase.com) project called `dealguru`, 
    - Authorised redirect URIs: `https://oulxrmolepbcshxjwjch.supabase.co/auth/v1/callback`
 3. In Supabase, open the `dealguru` project, go to **Authentication**, then **Sign In / Providers**, then **Google**. Turn it on and paste the Client ID and Client Secret from step 2.
 4. In Supabase, go to **Authentication**, then **URL Configuration**. Set the Site URL to `https://dealguru.netlify.app` and add `https://dealguru.netlify.app/**` to the redirect URLs.
-5. In [lib/supabase-config.ts](lib/supabase-config.ts), change `googleSignInReady` to `true` and push. The "Sign in" button then appears.
+5. In [lib/supabase-config.ts](lib/supabase-config.ts), change `googleSignInReady` to `true` and push. The **Log in** and **Sign up** links then appear, with a **Continue with Google** button.
 
 On Supabase's free plan, a project that nobody uses for a week gets paused. Deals keep working, but sign-in stops until you press **Restore** on the project in Supabase.
 
@@ -92,4 +113,4 @@ The site is set up for [Netlify's](https://www.netlify.com) free plan, which you
 1. Go to <https://app.netlify.com/start> and sign up with GitHub.
 2. Import the `DealGuru` repository and deploy it. No settings need changing.
 
-Netlify then rebuilds the site every time you push to `main`, so to change promos, edit [data/stores.ts](data/stores.ts) and push. Each rebuild uses some of the free plan's monthly credits, so group your edits together. If you go past the free limits, Netlify pauses the site instead of charging you.
+Netlify then rebuilds the site every time you push to `main`. Deals don't need a rebuild, because they're managed on the admin page. Each rebuild uses some of the free plan's monthly credits, so group your edits together. If you go past the free limits, Netlify pauses the site instead of charging you.

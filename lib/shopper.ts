@@ -10,10 +10,19 @@ import { supabasePublishableKey, supabaseUrl } from "./supabase-config";
  * The location is always kept on this device, and also in the shopper's
  * account while they're signed in.
  */
-type ShopperState = { user: User | null; location: SavedLocation | null; ready: boolean };
+type ShopperState = {
+  user: User | null;
+  location: SavedLocation | null;
+  /** The saved location has been read from this device. */
+  ready: boolean;
+  /** Supabase has checked whether someone is signed in, including any link they just opened from an email. */
+  authReady: boolean;
+};
 
 const STORAGE_KEY = "deal-guru-location";
-const SERVER_STATE: ShopperState = { user: null, location: null, ready: false };
+/** Set while a shopper who ticked the newsletter box is away signing in with Google. */
+const NEWSLETTER_PENDING_KEY = "deal-guru-newsletter-pending";
+const SERVER_STATE: ShopperState = { user: null, location: null, ready: false, authReady: false };
 
 let state: ShopperState = SERVER_STATE;
 let started = false;
@@ -58,8 +67,21 @@ async function saveToAccount(userId: string, location: SavedLocation | null) {
   });
 }
 
+/** Someone who ticked "Email me the latest deals" and then signed up with Google gets subscribed on their return. */
+async function applyPendingNewsletter(userId: string) {
+  let pending = false;
+  try {
+    pending = localStorage.getItem(NEWSLETTER_PENDING_KEY) === "1";
+    localStorage.removeItem(NEWSLETTER_PENDING_KEY);
+  } catch {
+    return;
+  }
+  if (pending) await setNewsletter(userId, true).catch(() => undefined);
+}
+
 /** After signing in, the account's saved location wins. With none, this device's choice is saved to it. */
 async function syncAfterSignIn(userId: string) {
+  await applyPendingNewsletter(userId);
   const { data, error } = await getSupabase()
     .from("profiles")
     .select("location_label, latitude, longitude")
@@ -84,7 +106,7 @@ function start() {
   getSupabase().auth.onAuthStateChange((_event, session) => {
     const user = session?.user ?? null;
     const signedIn = user !== null && user.id !== state.user?.id;
-    update({ user });
+    update({ user, authReady: true });
     // Supabase advises against making other Supabase calls inside this callback.
     if (signedIn) setTimeout(() => void syncAfterSignIn(user.id), 0);
   });
@@ -94,6 +116,16 @@ function subscribe(listener: () => void) {
   listeners.add(listener);
   start();
   return () => listeners.delete(listener);
+}
+
+/** The name to greet someone by: from the sign-up form or Google, else the start of their email. */
+export function firstNameOf(user: User) {
+  const metadata: Record<string, unknown> = user.user_metadata ?? {};
+  for (const key of ["first_name", "given_name", "full_name", "name"]) {
+    const value = metadata[key];
+    if (typeof value === "string" && value.trim()) return value.trim().split(/\s+/)[0];
+  }
+  return user.email?.split("@")[0] ?? "there";
 }
 
 export function useShopper(): ShopperState {
@@ -115,17 +147,75 @@ export function setLocation(location: SavedLocation | null) {
   if (state.user) void saveToAccount(state.user.id, rounded);
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(options: { newsletter?: boolean } = {}) {
+  try {
+    if (options.newsletter) localStorage.setItem(NEWSLETTER_PENDING_KEY, "1");
+    else localStorage.removeItem(NEWSLETTER_PENDING_KEY);
+  } catch {
+    // Storage can be blocked. They can still subscribe on the Privacy page.
+  }
   await getSupabase().auth.signInWithOAuth({
     provider: "google",
     options: { redirectTo: window.location.origin + window.location.pathname },
   });
 }
 
-/** For the admin account, which has a password set in Supabase. */
 export async function signInWithPassword(email: string, password: string) {
   const { error } = await getSupabase().auth.signInWithPassword({ email, password });
   if (error) throw error;
+}
+
+const confirmLink = () => `${window.location.origin}/login?confirmed=1`;
+
+/**
+ * Creates an account. The database saves the name and newsletter choice with it.
+ * Returns whether the shopper still has to click the link in their confirmation email.
+ */
+export async function signUpWithEmail(details: { email: string; password: string; firstName: string; newsletter: boolean }) {
+  const { data, error } = await getSupabase().auth.signUp({
+    email: details.email,
+    password: details.password,
+    options: {
+      emailRedirectTo: confirmLink(),
+      data: { first_name: details.firstName, newsletter: details.newsletter },
+    },
+  });
+  if (error) throw error;
+  return { needsConfirmation: data.session === null };
+}
+
+export async function resendConfirmation(email: string) {
+  const { error } = await getSupabase().auth.resend({ type: "signup", email, options: { emailRedirectTo: confirmLink() } });
+  if (error) throw error;
+}
+
+export async function sendPasswordReset(email: string) {
+  const { error } = await getSupabase().auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
+  });
+  if (error) throw error;
+}
+
+export async function updatePassword(password: string) {
+  const { error } = await getSupabase().auth.updateUser({ password });
+  if (error) throw error;
+}
+
+/** Whether this account gets the weekly deals email, or null if it couldn't be checked. */
+export async function getNewsletter(userId: string) {
+  const { data, error } = await getSupabase().from("profiles").select("newsletter").eq("id", userId).maybeSingle();
+  if (error) return null;
+  return data?.newsletter === true;
+}
+
+export async function setNewsletter(userId: string, subscribed: boolean) {
+  const { data, error } = await getSupabase()
+    .from("profiles")
+    .update({ newsletter: subscribed })
+    .eq("id", userId)
+    .select("newsletter");
+  if (error) throw error;
+  if (!data || data.length === 0) throw new Error("Your account's details weren't found.");
 }
 
 export async function signOut() {

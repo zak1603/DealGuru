@@ -2,6 +2,8 @@
 
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { type FormEvent, useEffect, useRef, useState } from "react";
+import { Field, inputClasses, primaryButton, quietButton } from "@/components/form-parts";
+import { SignupsSection } from "@/components/signups-section";
 import { endOfDay, formatDay } from "@/lib/data-helpers";
 import { getSupabase, signInWithGoogle, signInWithPassword, signOut, useShopper } from "@/lib/shopper";
 import { googleSignInReady } from "@/lib/supabase-config";
@@ -57,12 +59,6 @@ async function fetchCatalog(): Promise<{ stores: StoreRow[]; deals: ListedDeal[]
 
 const LOAD_FAILED: Message = { ok: false, text: "Couldn't load the deals. Check your connection and refresh." };
 
-const inputClasses = "w-full rounded-lg border-2 border-ink/25 bg-white px-3 py-2 text-base focus:border-ink";
-const primaryButton =
-  "flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-springbok px-4 py-2.5 text-sm font-bold text-white transition active:scale-95 disabled:opacity-60 motion-reduce:transform-none";
-const quietButton =
-  "flex min-h-10 cursor-pointer items-center gap-1 rounded-lg bg-paper px-3 text-sm font-bold transition hover:bg-marigold/40 active:scale-95 motion-reduce:transform-none";
-
 const slugify = (text: string) =>
   text
     .toLowerCase()
@@ -70,16 +66,6 @@ const slugify = (text: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 40);
-
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="text-sm font-bold">{label}</span>
-      {hint && <span className="ml-1 text-xs text-ink/60">{hint}</span>}
-      <div className="mt-1">{children}</div>
-    </label>
-  );
-}
 
 function SignInForm() {
   const [email, setEmail] = useState("");
@@ -366,12 +352,14 @@ function DealManager() {
           </ul>
         )}
       </section>
+
+      <SignupsSection />
     </div>
   );
 }
 
 export function AdminPanel() {
-  const { user, ready } = useShopper();
+  const { user, authReady: ready } = useShopper();
   const [check, setCheck] = useState<{ userId: string; admin: boolean } | null>(null);
 
   useEffect(() => {

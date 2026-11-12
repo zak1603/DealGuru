@@ -9,6 +9,8 @@ const dayLabel = new Intl.DateTimeFormat("en-ZA", {
 export const startOfDay = (day: string) => Date.parse(`${day}T00:00:00.000+02:00`);
 export const endOfDay = (day: string) => Date.parse(`${day}T23:59:59.999+02:00`);
 export const formatDay = (day: string) => dayLabel.format(endOfDay(day));
+/** A moment such as 2026-11-12T08:30:00Z, as the South African day it fell on. */
+export const formatMoment = (moment: string) => dayLabel.format(Date.parse(moment));
 
 export function assertDay(value: string, label: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(endOfDay(value))) {
