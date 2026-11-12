@@ -32,6 +32,15 @@ Each promo looks like this:
 
 Expired promos disappear from the site by themselves, within about an hour.
 
+## What shoppers can do
+
+- **Store pages.** Every store gets its own page at `/stores/<slug>` (for example `/stores/takealot`), and `/stores` lists them all. These pages help people find you on Google. Store names on deal cards link to them. The `slug` on each store in [data/stores.ts](data/stores.ts) sets the address, so keep it lowercase with dashes and don't change it once the site is live.
+- **Save deals.** The heart on a card saves it in that shopper's browser, with no account needed. A "Saved" filter appears once they've saved something.
+- **Share deals.** The share button opens the phone's share sheet, or WhatsApp on a computer, with a link straight to that deal.
+- **"Has a code" filter.** Appears by itself once any live promo has a `code`.
+
+The sitemap at `/sitemap.xml` updates itself as you add stores. Submit it once in [Google Search Console](https://search.google.com/search-console). If the site moves to its own domain, change the address in [lib/site.ts](lib/site.ts).
+
 ## Connect your affiliate accounts
 
 Sign up with an affiliate network or a store's own programme, then use whichever option matches what they give you:

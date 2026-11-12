@@ -18,6 +18,9 @@ export async function SiteNav() {
               Black Friday
             </Link>
           )}
+          <Link href="/stores" className="hover:text-marigold">
+            Stores
+          </Link>
           <Link href="/advertise" className="hover:text-marigold">
             Advertise
           </Link>

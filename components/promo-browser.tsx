@@ -1,17 +1,20 @@
 "use client";
 
-import { Search, X } from "lucide-react";
-import { useState } from "react";
+import { Heart, Search, Tag, X } from "lucide-react";
+import { type ReactNode, useState } from "react";
 import { DealCard } from "@/components/deal-card";
+import { useSavedDeals } from "@/lib/saved-deals";
 import type { LiveAd, LivePromo } from "@/lib/types";
 
 function StoreChip({
   label,
+  icon,
   count,
   active,
   onClick,
 }: {
   label: string;
+  icon?: ReactNode;
   count: number;
   active: boolean;
   onClick: () => void;
@@ -22,9 +25,12 @@ function StoreChip({
       aria-pressed={active}
       onClick={onClick}
       className={`flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold transition active:scale-95 motion-reduce:transform-none ${
-        active ? "bg-springbok text-white" : "bg-white text-ink hover:bg-marigold/40"
+        active
+          ? "bg-springbok text-white"
+          : "bg-white text-ink hover:bg-marigold/40"
       }`}
     >
+      {icon}
       {label}
       <span className={active ? "text-white/75" : "text-ink/50"}>{count}</span>
     </button>
@@ -34,12 +40,20 @@ function StoreChip({
 export function PromoBrowser({
   promos,
   featuredAds,
+  showStores = true,
 }: {
   promos: LivePromo[];
   featuredAds: LiveAd[];
+  /** Turn off on pages that already belong to one store. */
+  showStores?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [storeSlug, setStoreSlug] = useState<string | null>(null);
+  const [savedOnly, setSavedOnly] = useState(false);
+  const [codesOnly, setCodesOnly] = useState(false);
+  const saved = useSavedDeals();
+  const savedCount = promos.filter((p) => saved.has(p.id)).length;
+  const codeCount = promos.filter((p) => p.code).length;
 
   const stores = [...new Map(promos.map((p) => [p.storeSlug, p.storeName]))]
     .map(([slug, name]) => ({
@@ -52,11 +66,15 @@ export function PromoBrowser({
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
   const visible = promos.filter((promo) => {
     if (storeSlug && promo.storeSlug !== storeSlug) return false;
-    const text = `${promo.storeName} ${promo.headline} ${promo.description}`.toLowerCase();
+    if (savedOnly && !saved.has(promo.id)) return false;
+    if (codesOnly && !promo.code) return false;
+    const text =
+      `${promo.storeName} ${promo.headline} ${promo.description}`.toLowerCase();
     return words.every((word) => text.includes(word));
   });
 
-  const isFiltered = words.length > 0 || storeSlug !== null;
+  const isFiltered =
+    words.length > 0 || storeSlug !== null || savedOnly || codesOnly;
   // Someone narrowing down the list wants matches, so ads step aside.
   const visibleAds = isFiltered ? [] : featuredAds;
 
@@ -77,23 +95,47 @@ export function PromoBrowser({
             className="w-full rounded-xl border-2 border-ink bg-white py-2.5 pr-4 pl-11 text-base placeholder:text-ink/50"
           />
         </div>
-        <div className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5 py-0.5">
-          <StoreChip
-            label="All stores"
-            count={promos.length}
-            active={storeSlug === null}
-            onClick={() => setStoreSlug(null)}
-          />
-          {stores.map((store) => (
-            <StoreChip
-              key={store.slug}
-              label={store.name}
-              count={store.count}
-              active={storeSlug === store.slug}
-              onClick={() => setStoreSlug(store.slug)}
-            />
-          ))}
-        </div>
+        {(showStores || savedCount > 0 || savedOnly || codeCount > 0) && (
+          <div className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5 py-0.5">
+            {/* Saved only shows once something is saved, so first-time visitors see a clean row. */}
+            {(savedCount > 0 || savedOnly) && (
+              <StoreChip
+                label="Saved"
+                icon={<Heart className="size-3.5" aria-hidden />}
+                count={savedCount}
+                active={savedOnly}
+                onClick={() => setSavedOnly(!savedOnly)}
+              />
+            )}
+            {codeCount > 0 && (
+              <StoreChip
+                label="Has a code"
+                icon={<Tag className="size-3.5" aria-hidden />}
+                count={codeCount}
+                active={codesOnly}
+                onClick={() => setCodesOnly(!codesOnly)}
+              />
+            )}
+            {showStores && (
+              <StoreChip
+                label="All stores"
+                count={promos.length}
+                active={storeSlug === null}
+                onClick={() => setStoreSlug(null)}
+              />
+            )}
+            {showStores &&
+              stores.map((store) => (
+                <StoreChip
+                  key={store.slug}
+                  label={store.name}
+                  count={store.count}
+                  active={storeSlug === store.slug}
+                  onClick={() => setStoreSlug(store.slug)}
+                />
+              ))}
+          </div>
+        )}
       </div>
 
       <p className="mt-3 text-sm font-medium text-ink/70" aria-live="polite">
@@ -118,6 +160,8 @@ export function PromoBrowser({
           {visible.map((promo, index) => (
             <DealCard
               key={promo.id}
+              id={promo.id}
+              storeSlug={promo.storeSlug}
               revealIndex={visibleAds.length + index}
               storeName={promo.storeName}
               headline={promo.headline}
@@ -126,7 +170,11 @@ export function PromoBrowser({
               note={promo.expiresLabel}
               href={`/api/redirect/${promo.id}`}
               flag={
-                promo.endingSoon ? "ending-soon" : promo.blackFriday ? "black-friday" : undefined
+                promo.endingSoon
+                  ? "ending-soon"
+                  : promo.blackFriday
+                    ? "black-friday"
+                    : undefined
               }
             />
           ))}
@@ -142,6 +190,8 @@ export function PromoBrowser({
               onClick={() => {
                 setQuery("");
                 setStoreSlug(null);
+                setSavedOnly(false);
+                setCodesOnly(false);
               }}
               className="mx-auto mt-4 flex cursor-pointer items-center gap-1 rounded-lg bg-springbok px-4 py-2.5 text-sm font-bold text-white"
             >

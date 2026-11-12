@@ -13,7 +13,13 @@ export function isExpired(promo: Promo, now = Date.now()) {
 function indexPromos(allStores: Store[]) {
   const index = new Map<string, { promo: Promo; store: Store }>();
 
+  const slugs = new Set<string>();
   for (const store of allStores) {
+    if (!/^[a-z0-9-]+$/.test(store.slug)) {
+      throw new Error(`Store "${store.name}" slug must use only a-z, 0-9 and dashes`);
+    }
+    if (slugs.has(store.slug)) throw new Error(`Store slug "${store.slug}" is used more than once`);
+    slugs.add(store.slug);
     if (store.affiliate && "template" in store.affiliate) {
       assertHttpUrl(store.affiliate.template, `Store "${store.name}" affiliate template`);
       if (!store.affiliate.template.includes("{url}")) {
@@ -62,4 +68,22 @@ export function getLivePromos(now = Date.now()): LivePromo[] {
         promo.expires !== undefined && endOfDay(promo.expires) - now < ENDING_SOON_DAYS * DAY_MS,
       blackFriday: promo.blackFriday === true,
     }));
+}
+
+export type StoreSummary = { slug: string; name: string; dealCount: number };
+
+/** Every store, with how many live deals it has right now. */
+export function getStoreSummaries(now = Date.now()): StoreSummary[] {
+  const live = getLivePromos(now);
+  return stores
+    .map((store) => ({
+      slug: store.slug,
+      name: store.name,
+      dealCount: live.filter((promo) => promo.storeSlug === store.slug).length,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function findStore(slug: string) {
+  return stores.find((store) => store.slug === slug);
 }

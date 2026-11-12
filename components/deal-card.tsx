@@ -1,5 +1,8 @@
 import { ArrowUpRight, Clock } from "lucide-react";
+import Link from "next/link";
 import { CopyCode } from "@/components/copy-code";
+import { SaveButton, ShareButton } from "@/components/deal-actions";
+import { siteUrl } from "@/lib/site";
 
 const getDealClasses =
   "flex min-h-11 shrink-0 items-center gap-1 rounded-lg bg-springbok px-4 py-2.5 text-sm font-bold text-white";
@@ -55,7 +58,9 @@ function Flag({ flag }: { flag: CardFlag }) {
 }
 
 export function DealCard({
+  id,
   storeName,
+  storeSlug,
   headline,
   description,
   code,
@@ -64,7 +69,11 @@ export function DealCard({
   flag,
   revealIndex,
 }: {
+  /** A promo id. Gives the card an anchor plus save and share buttons. Leave out for ads. */
+  id?: string;
   storeName: string;
+  /** Links the store name to its page. */
+  storeSlug?: string;
   headline: string;
   description: string;
   code?: string;
@@ -78,17 +87,38 @@ export function DealCard({
 
   return (
     <article
+      id={id}
       style={reveals ? { animationDelay: `${Math.min(revealIndex, 11) * 45}ms` } : undefined}
-      className={`flex flex-col rounded-2xl bg-white shadow-[0_1px_2px_rgb(22_19_14/0.08),0_12px_24px_-16px_rgb(22_19_14/0.35)] transition-[translate,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0_2px_4px_rgb(22_19_14/0.1),0_20px_32px_-16px_rgb(22_19_14/0.45)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
+      className={`flex scroll-mt-40 flex-col rounded-2xl bg-white shadow-[0_1px_2px_rgb(22_19_14/0.08),0_12px_24px_-16px_rgb(22_19_14/0.35)] transition-[translate,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0_2px_4px_rgb(22_19_14/0.1),0_20px_32px_-16px_rgb(22_19_14/0.45)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
         reveals ? "animate-rise motion-reduce:animate-none" : ""
       } ${flag === "sponsored" ? "ring-2 ring-marigold" : ""}`}
     >
       <div className="flex flex-1 flex-col p-5">
-        <div className="flex items-center justify-between gap-3">
-          <p className="truncate text-sm font-semibold">{storeName}</p>
-          {flag && <Flag flag={flag} />}
+        <div className="-my-2 flex min-h-9 items-center gap-2">
+          {storeSlug ? (
+            <Link
+              href={`/stores/${storeSlug}`}
+              className="truncate text-sm font-semibold underline-offset-2 hover:underline"
+            >
+              {storeName}
+            </Link>
+          ) : (
+            <p className="truncate text-sm font-semibold">{storeName}</p>
+          )}
+          <div className="ml-auto flex shrink-0 items-center gap-1">
+            {flag && <Flag flag={flag} />}
+            {id && (
+              <>
+                <SaveButton id={id} label={`${headline} at ${storeName}`} />
+                <ShareButton
+                  url={`${siteUrl}/stores/${storeSlug ?? ""}#${id}`}
+                  text={`${headline} at ${storeName}`}
+                />
+              </>
+            )}
+          </div>
         </div>
-        <h2 className="display mt-4 text-5xl">{headline}</h2>
+        <h2 className="display mt-5 text-5xl">{headline}</h2>
         <p className="mt-3 flex-1 text-[15px] leading-snug text-ink/80">{description}</p>
         <p className="mt-3 text-xs font-medium text-ink/60">{note}</p>
       </div>

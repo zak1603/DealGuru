@@ -3,6 +3,7 @@ import { Archivo } from "next/font/google";
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { SloganTicker } from "@/components/slogan-ticker";
+import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -11,9 +12,17 @@ const archivo = Archivo({
   axes: ["wdth"],
 });
 
+const title = "Deal Guru | Lekker deals from South Africa's favourite stores";
+const description =
+  "Current sales and specials from South Africa's favourite stores, all in one place.";
+
 export const metadata: Metadata = {
-  title: "Deal Guru | Lekker deals from South Africa's favourite stores",
-  description: "Current sales and specials from South Africa's favourite stores, all in one place.",
+  metadataBase: new URL(siteUrl),
+  title,
+  description,
+  // How links look when shared on WhatsApp, Facebook and X.
+  openGraph: { title, description, siteName: "Deal Guru", locale: "en_ZA", type: "website", url: "/" },
+  twitter: { card: "summary" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
