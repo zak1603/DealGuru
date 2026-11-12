@@ -31,10 +31,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               cost to you. Items marked Sponsored are paid ads. Offers are set by each store and can
               change without notice, so check the price before you buy.
             </p>
-            <p>
+            <p className="flex flex-wrap gap-x-4 gap-y-1">
               <Link href="/advertise" className="font-semibold underline">
                 Advertise with us
               </Link>
+              <Link href="/privacy" className="font-semibold underline">
+                Privacy
+              </Link>
+            </p>
+            <p className="text-xs">
+              Store locations ©{" "}
+              <a href="https://www.openstreetmap.org/copyright" className="underline">
+                OpenStreetMap contributors
+              </a>
+              . Some branches may be missing.
             </p>
           </div>
         </footer>

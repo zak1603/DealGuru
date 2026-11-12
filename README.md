@@ -50,6 +50,34 @@ Your clicks and earnings appear in your affiliate network's dashboard. The site 
 
 Add `blackFriday: true` to any promo in [data/stores.ts](data/stores.ts) to list it on the `/black-friday` page. The banner and countdown switch off by themselves after Cyber Monday. For next year, update the dates in [lib/campaign.ts](lib/campaign.ts).
 
+## Deals near you
+
+Shoppers can tap **Use my location** or pick their city, and the deals re-sort so the nearest stores come first. Online-only stores like Takealot show as "Online store". The location is rounded to about 1 km and saved on the shopper's device, and in their account if they're signed in.
+
+Store branch locations come from [OpenStreetMap](https://www.openstreetmap.org/copyright), which is free but community-mapped, so some branches are missing (HiFiCorp especially). To refresh them, run:
+
+```bash
+node scripts/update-branches.mjs
+```
+
+When you add a new store with physical shops, add its name to the list at the top of [scripts/update-branches.mjs](scripts/update-branches.mjs) and run it again.
+
+## Sign in with Google (one-time setup)
+
+Sign-in uses a free [Supabase](https://supabase.com) project called `dealguru`, which already has its table and access rules. Google sign-in needs switching on:
+
+1. In the [Google Cloud console](https://console.cloud.google.com/auth/overview), set up the consent screen with the app name **Deal Guru** and your email, and publish it so anyone can sign in.
+2. [Create an OAuth client](https://console.cloud.google.com/auth/clients/create) of type **Web application**:
+   - Authorised JavaScript origins: `https://dealguru.netlify.app`
+   - Authorised redirect URIs: `https://oulxrmolepbcshxjwjch.supabase.co/auth/v1/callback`
+3. In Supabase, open the `dealguru` project, go to **Authentication**, then **Sign In / Providers**, then **Google**. Turn it on and paste the Client ID and Client Secret from step 2.
+4. In Supabase, go to **Authentication**, then **URL Configuration**. Set the Site URL to `https://dealguru.netlify.app` and add `https://dealguru.netlify.app/**` to the redirect URLs.
+5. In [lib/supabase-config.ts](lib/supabase-config.ts), change `googleSignInReady` to `true` and push. The "Sign in" button then appears.
+
+On Supabase's free plan, a project that nobody uses for a week gets paused. Deals keep working, but sign-in stops until you press **Restore** on the project in Supabase.
+
+Shoppers can delete their account and saved location from the Privacy page.
+
 ## Sell ads
 
 The Advertise page lists what businesses can buy. To start taking payments:

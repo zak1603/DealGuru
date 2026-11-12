@@ -1,5 +1,6 @@
 import { cacheLife } from "next/cache";
 import Link from "next/link";
+import { AccountMenu } from "@/components/account-menu";
 import { isBlackFridayOver } from "@/lib/campaign";
 
 export async function SiteNav() {
@@ -12,7 +13,7 @@ export async function SiteNav() {
         <Link href="/" className="display text-2xl text-marigold">
           Deal Guru
         </Link>
-        <div className="flex items-center gap-5 text-sm font-semibold">
+        <div className="flex items-center gap-4 text-sm font-semibold sm:gap-5">
           {!isBlackFridayOver() && (
             <Link href="/black-friday" className="hover:text-marigold">
               Black Friday
@@ -21,6 +22,7 @@ export async function SiteNav() {
           <Link href="/advertise" className="hover:text-marigold">
             Advertise
           </Link>
+          <AccountMenu />
         </div>
       </div>
     </nav>

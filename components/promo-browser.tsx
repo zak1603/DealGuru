@@ -1,9 +1,29 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DealCard } from "@/components/deal-card";
+import { LocationBar } from "@/components/location-bar";
+import { formatKm, type Nearest, nearestBranch } from "@/lib/geo";
+import { useBranches, useShopper } from "@/lib/shopper";
 import type { LiveAd, LivePromo } from "@/lib/types";
+
+type SortMode = "nearest" | "ending";
+
+function SortButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`cursor-pointer rounded-full px-3 py-1 text-xs font-bold transition active:scale-95 motion-reduce:transform-none ${
+        active ? "bg-ink text-marigold" : "bg-white text-ink hover:bg-marigold/40"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
 
 function StoreChip({
   label,
@@ -40,6 +60,31 @@ export function PromoBrowser({
 }) {
   const [query, setQuery] = useState("");
   const [storeSlug, setStoreSlug] = useState<string | null>(null);
+  const [sortMode, setSortMode] = useState<SortMode>("nearest");
+  const { location } = useShopper();
+  const branchFile = useBranches(location !== null);
+
+  // Distance to each store's nearest branch. Stores missing from the file are online only.
+  const nearest = useMemo(() => {
+    if (!location || !branchFile) return null;
+    const result = new Map<string, Nearest | null>();
+    for (const [slug, points] of Object.entries(branchFile.branches)) {
+      result.set(slug, nearestBranch(location, points));
+    }
+    return result;
+  }, [location, branchFile]);
+
+  const distanceFor = (slug: string) => {
+    if (!nearest) return undefined;
+    const found = nearest.get(slug);
+    if (!found) return { online: true, text: "Online store" };
+    return {
+      online: false,
+      text: `Nearest store ${formatKm(found.km)} away${found.area ? `, ${found.area}` : ""}`,
+    };
+  };
+  const kmFor = (slug: string) => nearest?.get(slug)?.km ?? Infinity;
+  const sortByDistance = nearest !== null && sortMode === "nearest";
 
   const stores = [...new Map(promos.map((p) => [p.storeSlug, p.storeName]))]
     .map(([slug, name]) => ({
@@ -50,11 +95,15 @@ export function PromoBrowser({
     .sort((a, b) => a.name.localeCompare(b.name));
 
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-  const visible = promos.filter((promo) => {
+  const matches = promos.filter((promo) => {
     if (storeSlug && promo.storeSlug !== storeSlug) return false;
     const text = `${promo.storeName} ${promo.headline} ${promo.description}`.toLowerCase();
     return words.every((word) => text.includes(word));
   });
+  // Promos arrive soonest-ending first, and a stable sort keeps that order within a store.
+  const visible = sortByDistance
+    ? [...matches].sort((a, b) => kmFor(a.storeSlug) - kmFor(b.storeSlug))
+    : matches;
 
   const isFiltered = words.length > 0 || storeSlug !== null;
   // Someone narrowing down the list wants matches, so ads step aside.
@@ -62,6 +111,7 @@ export function PromoBrowser({
 
   return (
     <>
+      <LocationBar />
       <div className="sticky top-0 z-10 -mx-5 space-y-3 bg-paper/95 px-5 py-3 backdrop-blur">
         <div className="relative">
           <Search
@@ -96,9 +146,18 @@ export function PromoBrowser({
         </div>
       </div>
 
-      <p className="mt-3 text-sm font-medium text-ink/70" aria-live="polite">
-        {visible.length} lekker {visible.length === 1 ? "deal" : "deals"}
-      </p>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-medium text-ink/70" aria-live="polite">
+          {visible.length} lekker {visible.length === 1 ? "deal" : "deals"}
+          {sortByDistance ? ", nearest stores first" : ""}
+        </p>
+        {nearest && (
+          <div role="group" aria-label="Sort deals" className="flex gap-1.5">
+            <SortButton label="Nearest first" active={sortMode === "nearest"} onClick={() => setSortMode("nearest")} />
+            <SortButton label="Ending soon" active={sortMode === "ending"} onClick={() => setSortMode("ending")} />
+          </div>
+        )}
+      </div>
 
       {visible.length > 0 ? (
         <div className="mt-3 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -125,6 +184,7 @@ export function PromoBrowser({
               code={promo.code}
               note={promo.expiresLabel}
               href={`/api/redirect/${promo.id}`}
+              distance={distanceFor(promo.storeSlug)}
               flag={
                 promo.endingSoon ? "ending-soon" : promo.blackFriday ? "black-friday" : undefined
               }

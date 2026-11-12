@@ -1,4 +1,4 @@
-import { ArrowUpRight, Clock } from "lucide-react";
+import { ArrowUpRight, Clock, Globe, MapPin } from "lucide-react";
 import { CopyCode } from "@/components/copy-code";
 
 const getDealClasses =
@@ -63,6 +63,7 @@ export function DealCard({
   href,
   flag,
   revealIndex,
+  distance,
 }: {
   storeName: string;
   headline: string;
@@ -73,6 +74,8 @@ export function DealCard({
   flag?: CardFlag;
   /** Position in the grid, so cards rise in one after another. Leave out for no entrance. */
   revealIndex?: number;
+  /** How far the nearest branch is, or that the store is online only. Shown once a location is set. */
+  distance?: { online: boolean; text: string };
 }) {
   const reveals = revealIndex !== undefined;
 
@@ -88,6 +91,20 @@ export function DealCard({
           <p className="truncate text-sm font-semibold">{storeName}</p>
           {flag && <Flag flag={flag} />}
         </div>
+        {distance && (
+          <p
+            className={`mt-1.5 flex items-center gap-1 text-xs font-bold ${
+              distance.online ? "text-ink/60" : "text-springbok"
+            }`}
+          >
+            {distance.online ? (
+              <Globe className="size-3.5 shrink-0" aria-hidden />
+            ) : (
+              <MapPin className="size-3.5 shrink-0" aria-hidden />
+            )}
+            {distance.text}
+          </p>
+        )}
         <h2 className="display mt-4 text-5xl">{headline}</h2>
         <p className="mt-3 flex-1 text-[15px] leading-snug text-ink/80">{description}</p>
         <p className="mt-3 text-xs font-medium text-ink/60">{note}</p>
