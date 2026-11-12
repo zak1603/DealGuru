@@ -5,7 +5,7 @@ import { findPromo, isExpired } from "@/lib/promos";
 /** Sends a shopper to the store through the affiliate link for this promo. */
 export async function GET(request: NextRequest, ctx: RouteContext<"/api/redirect/[dealId]">) {
   const { dealId } = await ctx.params;
-  const match = findPromo(dealId);
+  const match = await findPromo(dealId);
 
   // A stale page can still link to a promo that has since ended, so send those home.
   const destination =

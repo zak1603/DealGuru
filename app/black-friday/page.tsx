@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default async function BlackFridayPage() {
   "use cache";
-  cacheLife("hours");
+  cacheLife("minutes");
 
   if (isBlackFridayOver()) {
     return (
@@ -32,6 +32,8 @@ export default async function BlackFridayPage() {
       </main>
     );
   }
+
+  const promos = (await getLivePromos()).filter((promo) => promo.blackFriday);
 
   return (
     <>
@@ -50,10 +52,7 @@ export default async function BlackFridayPage() {
       </header>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 pt-8 pb-16">
-        <PromoBrowser
-          promos={getLivePromos().filter((promo) => promo.blackFriday)}
-          featuredAds={getLiveAds("featured")}
-        />
+        <PromoBrowser promos={promos} featuredAds={getLiveAds("featured")} />
       </main>
 
       <AdPopup ads={getLiveAds("popup")} />

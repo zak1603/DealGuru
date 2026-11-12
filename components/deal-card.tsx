@@ -1,4 +1,4 @@
-import { ArrowUpRight, Clock, Globe, MapPin } from "lucide-react";
+import { ArrowUpRight, Clock, Globe, MapPin, MessageCircle } from "lucide-react";
 import { CopyCode } from "@/components/copy-code";
 
 const getDealClasses =
@@ -64,6 +64,9 @@ export function DealCard({
   flag,
   revealIndex,
   distance,
+  anchorId,
+  highlighted,
+  shareUrl,
 }: {
   storeName: string;
   headline: string;
@@ -76,15 +79,24 @@ export function DealCard({
   revealIndex?: number;
   /** How far the nearest branch is, or that the store is online only. Shown once a location is set. */
   distance?: { online: boolean; text: string };
+  /** Lets a shared link jump straight to this card. */
+  anchorId?: string;
+  /** Outlines the card someone shared with you. */
+  highlighted?: boolean;
+  /** A WhatsApp link with this deal ready to send. */
+  shareUrl?: string;
 }) {
   const reveals = revealIndex !== undefined;
 
   return (
     <article
+      id={anchorId}
       style={reveals ? { animationDelay: `${Math.min(revealIndex, 11) * 45}ms` } : undefined}
       className={`flex flex-col rounded-2xl bg-white shadow-[0_1px_2px_rgb(22_19_14/0.08),0_12px_24px_-16px_rgb(22_19_14/0.35)] transition-[translate,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0_2px_4px_rgb(22_19_14/0.1),0_20px_32px_-16px_rgb(22_19_14/0.45)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
         reveals ? "animate-rise motion-reduce:animate-none" : ""
-      } ${flag === "sponsored" ? "ring-2 ring-marigold" : ""}`}
+      } ${flag === "sponsored" ? "ring-2 ring-marigold" : ""} ${
+        highlighted ? "scroll-mt-48 ring-4 ring-springbok" : ""
+      }`}
     >
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-center justify-between gap-3">
@@ -107,7 +119,21 @@ export function DealCard({
         )}
         <h2 className="display mt-4 text-5xl">{headline}</h2>
         <p className="mt-3 flex-1 text-[15px] leading-snug text-ink/80">{description}</p>
-        <p className="mt-3 text-xs font-medium text-ink/60">{note}</p>
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <p className="text-xs font-medium text-ink/60">{note}</p>
+          {shareUrl && (
+            <a
+              href={shareUrl}
+              target="_blank"
+              rel="noopener"
+              aria-label={`Share ${headline} at ${storeName} on WhatsApp (opens in a new tab)`}
+              className="flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs font-bold text-springbok transition hover:bg-springbok/10 active:scale-95 motion-reduce:transform-none"
+            >
+              <MessageCircle className="size-4" aria-hidden />
+              Share on WhatsApp
+            </a>
+          )}
+        </div>
       </div>
 
       <div className="perforation flex items-stretch gap-2 p-4">

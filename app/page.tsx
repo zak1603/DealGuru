@@ -9,8 +9,10 @@ import { getLivePromos } from "@/lib/promos";
 
 export default async function Home() {
   "use cache";
-  // Re-checks dates hourly so ended promos and ads drop off without a redeploy.
-  cacheLife("hours");
+  // Refreshes about once a minute, so deals saved on the admin page show up quickly
+  // and ended ones drop off without a redeploy.
+  cacheLife("minutes");
+  const promos = await getLivePromos();
 
   return (
     <>
@@ -37,7 +39,7 @@ export default async function Home() {
             <BlackFridayBanner />
           </div>
         )}
-        <PromoBrowser promos={getLivePromos()} featuredAds={getLiveAds("featured")} />
+        <PromoBrowser promos={promos} featuredAds={getLiveAds("featured")} />
       </main>
 
       <AdPopup ads={getLiveAds("popup")} />

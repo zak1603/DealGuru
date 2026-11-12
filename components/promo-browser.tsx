@@ -1,12 +1,29 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { DealCard } from "@/components/deal-card";
 import { LocationBar } from "@/components/location-bar";
 import { formatKm, type Nearest, nearestBranch } from "@/lib/geo";
 import { useBranches, useShopper } from "@/lib/shopper";
+import { SITE_URL, whatsAppShareUrl } from "@/lib/site";
 import type { LiveAd, LivePromo } from "@/lib/types";
+
+const noSubscription = () => () => {};
+
+/** The deal id in a shared link like dealguru.netlify.app/?deal=abc, read once the page is in the browser. */
+function useSharedDealId() {
+  return useSyncExternalStore(
+    noSubscription,
+    () => new URLSearchParams(window.location.search).get("deal"),
+    () => null,
+  );
+}
+
+function shareMessage(promo: LivePromo) {
+  const code = promo.code ? ` Use code ${promo.code}.` : "";
+  return `${promo.headline} at ${promo.storeName}! ${promo.description}${code} Found on Deal Guru: ${SITE_URL}/?deal=${promo.id}`;
+}
 
 type SortMode = "nearest" | "ending";
 
@@ -101,9 +118,21 @@ export function PromoBrowser({
     return words.every((word) => text.includes(word));
   });
   // Promos arrive soonest-ending first, and a stable sort keeps that order within a store.
-  const visible = sortByDistance
+  const sorted = sortByDistance
     ? [...matches].sort((a, b) => kmFor(a.storeSlug) - kmFor(b.storeSlug))
     : matches;
+
+  // A deal someone shared with you goes first, outlined, until you start filtering.
+  const sharedId = useSharedDealId();
+  const sharedDeal = storeSlug === null && words.length === 0 ? sorted.find((p) => p.id === sharedId) : undefined;
+  const visible = sharedDeal ? [sharedDeal, ...sorted.filter((p) => p !== sharedDeal)] : sorted;
+
+  useEffect(() => {
+    if (!sharedId) return;
+    const card = document.getElementById(`deal-${sharedId}`);
+    const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    card?.scrollIntoView({ block: "start", behavior: smooth ? "smooth" : "auto" });
+  }, [sharedId]);
 
   const isFiltered = words.length > 0 || storeSlug !== null;
   // Someone narrowing down the list wants matches, so ads step aside.
@@ -185,6 +214,9 @@ export function PromoBrowser({
               note={promo.expiresLabel}
               href={`/api/redirect/${promo.id}`}
               distance={distanceFor(promo.storeSlug)}
+              anchorId={`deal-${promo.id}`}
+              highlighted={promo === sharedDeal}
+              shareUrl={whatsAppShareUrl(shareMessage(promo))}
               flag={
                 promo.endingSoon ? "ending-soon" : promo.blackFriday ? "black-friday" : undefined
               }

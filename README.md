@@ -13,34 +13,29 @@ npm run dev
 
 Then open <http://localhost:3000>.
 
-## Add stores and promos
+## Add, edit and remove deals
 
-Everything is in [data/stores.ts](data/stores.ts). The entries there are real South African offers, checked on 10 November 2026. Offers change fast, so recheck them and remove any that have ended. Most of them end by 30 November, so add new deals before then or the site will run out.
+Go to <https://dealguru.netlify.app/admin> and sign in. You can add deals, including for new stores, and edit or delete existing ones. Changes show on the site within about a minute, with no code and no redeploy. Ended deals disappear by themselves.
 
-Each promo looks like this:
+**First time:** create your admin account in Supabase. Open the `dealguru` project, go to **Authentication**, then **Users**, then **Add user**, then **Create new user**. Enter the email address that's listed as admin and a password of your choice, and tick **Auto Confirm User**.
 
-```ts
-{
-  id: "mystore-summer-20",     // unique, no spaces
-  headline: "20% off",         // the big text on the card
-  description: "All summer dresses.",
-  code: "SUMMER20",            // leave this line out if no code is needed
-  url: "https://mystore.com/summer",
-  expires: "2026-12-31",       // last valid day; leave out if there's no end date
-},
-```
+Only emails listed in the `admins` table in Supabase can make changes. To add another admin, add their email there in lowercase.
 
-Expired promos disappear from the site by themselves, within about an hour.
+The deals live in the Supabase database. [data/stores.ts](data/stores.ts) is a backup copy the site falls back to if the database can't be reached, so it isn't updated by the admin page.
+
+## Share on WhatsApp
+
+Every deal has a **Share on WhatsApp** link that opens WhatsApp with the deal ready to send. The message links back to Deal Guru, which jumps to and outlines that deal, so friends discover the rest of the site too.
 
 ## Connect your affiliate accounts
 
 Sign up with an affiliate network or a store's own programme, then use whichever option matches what they give you:
 
-| What your network gives you | What to add |
+| What your network gives you | Where it goes |
 | --- | --- |
-| A link format you can put any store page into | On the store: `affiliate: { template: "https://network.com/click?id=123&url={url}" }`. `{url}` is where the store page goes. |
-| An ID that gets added to the store's links, like `?tag=you-20` | On the store: `affiliate: { param: "tag", value: "you-20" }` |
-| A ready-made link for one specific offer | On the promo: `affiliateUrl: "https://..."` |
+| A ready-made link for one specific offer | The deal's **Affiliate link** field on the admin page |
+| A link format you can put any store page into, like `https://network.com/click?id=123&url={url}` | The store's `affiliate_template` in the `stores` table in Supabase. `{url}` is where the store page goes. |
+| An ID that gets added to the store's links, like `?tag=you-20` | The store's `affiliate_param` (`tag`) and `affiliate_value` (`you-20`) in the `stores` table |
 
 A store with none of these still works. Its links go straight to the store and earn nothing.
 

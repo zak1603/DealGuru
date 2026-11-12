@@ -1,7 +1,9 @@
 import type { Store } from "../lib/types";
 
 /**
- * Every store and promo on the site lives in this file.
+ * BACKUP COPY. The live deals are managed on the admin page (/admin) and stored
+ * in Supabase. The site only falls back to this file if the database can't be
+ * reached, so edits here don't change the live site.
  *
  * These are real offers, checked on 10 November 2026 against each store's own
  * page or South African news reports. Offers change fast, so recheck them and

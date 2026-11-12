@@ -20,7 +20,7 @@ let started = false;
 let supabase: SupabaseClient | undefined;
 const listeners = new Set<() => void>();
 
-function getSupabase() {
+export function getSupabase() {
   supabase ??= createClient(supabaseUrl, supabasePublishableKey, { auth: { flowType: "pkce" } });
   return supabase;
 }
@@ -120,6 +120,12 @@ export async function signInWithGoogle() {
     provider: "google",
     options: { redirectTo: window.location.origin + window.location.pathname },
   });
+}
+
+/** For the admin account, which has a password set in Supabase. */
+export async function signInWithPassword(email: string, password: string) {
+  const { error } = await getSupabase().auth.signInWithPassword({ email, password });
+  if (error) throw error;
 }
 
 export async function signOut() {
