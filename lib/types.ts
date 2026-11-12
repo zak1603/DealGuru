@@ -30,6 +30,10 @@ export type Store = {
   name: string;
   /** Leave out to link straight to the store with no commission. */
   affiliate?: Affiliate;
+  /** What its branches are called on OpenStreetMap, e.g. ["Woolworths"]. Matches names starting with one. */
+  branchNames?: string[];
+  /** The store only sells online, so it has no branches to measure distance to. */
+  online?: true;
   promos: Promo[];
 };
 
@@ -38,6 +42,8 @@ export type LivePromo = {
   id: string;
   storeSlug: string;
   storeName: string;
+  /** No branches. Listed after nearby stores when sorting by distance. */
+  online: boolean;
   headline: string;
   description: string;
   code?: string;

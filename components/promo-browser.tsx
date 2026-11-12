@@ -3,6 +3,10 @@
 import { Heart, Search, Tag, X } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { DealCard } from "@/components/deal-card";
+import { LocationBar } from "@/components/location-bar";
+import { useNearestBranches } from "@/lib/branches";
+import { formatKm } from "@/lib/geo";
+import { useSavedLocation } from "@/lib/location";
 import { useSavedDeals } from "@/lib/saved-deals";
 import type { LiveAd, LivePromo } from "@/lib/types";
 
@@ -52,6 +56,8 @@ export function PromoBrowser({
   const [savedOnly, setSavedOnly] = useState(false);
   const [codesOnly, setCodesOnly] = useState(false);
   const saved = useSavedDeals();
+  const location = useSavedLocation();
+  const nearest = useNearestBranches(location);
   const savedCount = promos.filter((p) => saved.has(p.id)).length;
   const codeCount = promos.filter((p) => p.code).length;
 
@@ -72,6 +78,21 @@ export function PromoBrowser({
       `${promo.storeName} ${promo.headline} ${promo.description}`.toLowerCase();
     return words.every((word) => text.includes(word));
   });
+
+  // With a location, closest stores first, then stores with no known branch, then online-only.
+  // The sort is stable, so deals at the same store stay soonest-ending first.
+  if (nearest) {
+    const rank = (promo: LivePromo) =>
+      promo.online ? Infinity : (nearest.get(promo.storeSlug)?.km ?? Number.MAX_VALUE);
+    visible.sort((a, b) => rank(a) - rank(b));
+  }
+
+  function distanceFor(promo: LivePromo) {
+    if (!nearest) return undefined;
+    if (promo.online) return { label: "Online only, delivered to you", online: true };
+    const branch = nearest.get(promo.storeSlug);
+    return branch ? { label: `${formatKm(branch.km)} · ${branch.branch}` } : undefined;
+  }
 
   const isFiltered =
     words.length > 0 || storeSlug !== null || savedOnly || codesOnly;
@@ -138,6 +159,8 @@ export function PromoBrowser({
         )}
       </div>
 
+      <LocationBar />
+
       <p className="mt-3 text-sm font-medium text-ink/70" aria-live="polite">
         {visible.length} lekker {visible.length === 1 ? "deal" : "deals"}
       </p>
@@ -168,6 +191,7 @@ export function PromoBrowser({
               description={promo.description}
               code={promo.code}
               note={promo.expiresLabel}
+              distance={distanceFor(promo)}
               href={`/api/redirect/${promo.id}`}
               flag={
                 promo.endingSoon

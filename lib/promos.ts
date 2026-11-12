@@ -20,6 +20,9 @@ function indexPromos(allStores: Store[]) {
     }
     if (slugs.has(store.slug)) throw new Error(`Store slug "${store.slug}" is used more than once`);
     slugs.add(store.slug);
+    if (!store.online === !store.branchNames?.length) {
+      throw new Error(`Store "${store.name}" needs exactly one of online: true or branchNames`);
+    }
     if (store.affiliate && "template" in store.affiliate) {
       assertHttpUrl(store.affiliate.template, `Store "${store.name}" affiliate template`);
       if (!store.affiliate.template.includes("{url}")) {
@@ -59,6 +62,7 @@ export function getLivePromos(now = Date.now()): LivePromo[] {
       id: promo.id,
       storeSlug: store.slug,
       storeName: store.name,
+      online: store.online === true,
       headline: promo.headline,
       description: promo.description,
       code: promo.code,

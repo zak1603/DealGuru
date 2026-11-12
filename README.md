@@ -38,6 +38,31 @@ Expired promos disappear from the site by themselves, within about an hour.
 - **Save deals.** The heart on a card saves it in that shopper's browser, with no account needed. A "Saved" filter appears once they've saved something.
 - **Share deals.** The share button opens the phone's share sheet, or WhatsApp on a computer, with a link straight to that deal.
 - **"Has a code" filter.** Appears by itself once any live promo has a `code`.
+- **Deals closest to you.** Shoppers tap "Use my location" or pick their city, and deals are sorted by how far the nearest branch is, with the distance and branch name on each card. Online-only stores come last. The location is remembered in their browser, and in their account when they're logged in.
+- **Log in.** Shoppers log in with a link sent to their email, with no password. Their location is saved to their account, so it follows them to their phone, laptop and so on. Logging out removes it from that device.
+
+## Store branches
+
+Every store in [data/stores.ts](data/stores.ts) has either `online: true` (online-only, like Takealot) or `branchNames`, the names its branches go by on [OpenStreetMap](https://www.openstreetmap.org). Each time the site builds, it downloads every matching branch in South Africa into `public/branches.json`. If the download fails, the build carries on with the branches from last time.
+
+To refresh them on your own computer, run `npm run branches`. If a branch is missing or in the wrong place, anyone can fix it on OpenStreetMap, and the next build picks it up.
+
+## Turn on logging in
+
+Logging in uses [Supabase](https://supabase.com)'s free plan. Until it's set up, the "Log in" link stays hidden and locations are only remembered on each device.
+
+1. At [supabase.com/dashboard](https://supabase.com/dashboard), create a **new project** called DealGuru (keep it separate from your courts app, so the two don't share users). Pick the London region, the closest to South Africa.
+2. In the project, open **SQL Editor**, paste in everything from [supabase/migrations/20261112000000_profiles.sql](supabase/migrations/20261112000000_profiles.sql), and press **Run**.
+3. Open **Authentication > URL Configuration**. Set **Site URL** to `https://dealguru.netlify.app` and add `https://dealguru.netlify.app/account` under **Redirect URLs**.
+4. Open **Project Settings > API Keys** and copy the **Project URL** and the **publishable key** (it starts with `sb_publishable_`). Never use the secret key here.
+5. In Netlify, open **Site configuration > Environment variables** and add:
+   - `NEXT_PUBLIC_SUPABASE_URL` set to the Project URL
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` set to the publishable key
+6. Redeploy the site from Netlify's **Deploys** tab.
+
+Supabase's built-in email only sends a few login emails an hour, which is fine to start with. Once more people log in, connect your own email sender under **Authentication > Emails > SMTP Settings** (for example [Resend](https://resend.com) or [Brevo](https://www.brevo.com), both with free plans).
+
+Locations are saved rounded to about 1 km, and each person can only read their own. Under POPIA, mention in a privacy notice that you store an email address and approximate location to sort deals, and that people can remove their location at any time on their Account page.
 
 The sitemap at `/sitemap.xml` updates itself as you add stores. Submit it once in [Google Search Console](https://search.google.com/search-console). If the site moves to its own domain, change the address in [lib/site.ts](lib/site.ts).
 

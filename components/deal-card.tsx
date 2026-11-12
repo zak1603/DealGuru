@@ -1,4 +1,4 @@
-import { ArrowUpRight, Clock } from "lucide-react";
+import { ArrowUpRight, Clock, Globe, MapPin } from "lucide-react";
 import Link from "next/link";
 import { CopyCode } from "@/components/copy-code";
 import { SaveButton, ShareButton } from "@/components/deal-actions";
@@ -65,6 +65,7 @@ export function DealCard({
   description,
   code,
   note,
+  distance,
   href,
   flag,
   revealIndex,
@@ -78,6 +79,8 @@ export function DealCard({
   description: string;
   code?: string;
   note: string;
+  /** Nearest branch, e.g. "2.4 km · Woolworths, Sandton". */
+  distance?: { label: string; online?: boolean };
   href?: string;
   flag?: CardFlag;
   /** Position in the grid, so cards rise in one after another. Leave out for no entrance. */
@@ -121,6 +124,16 @@ export function DealCard({
         <h2 className="display mt-5 text-5xl">{headline}</h2>
         <p className="mt-3 flex-1 text-[15px] leading-snug text-ink/80">{description}</p>
         <p className="mt-3 text-xs font-medium text-ink/60">{note}</p>
+        {distance && (
+          <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-springbok">
+            {distance.online ? (
+              <Globe className="size-3.5 shrink-0" aria-hidden />
+            ) : (
+              <MapPin className="size-3.5 shrink-0" aria-hidden />
+            )}
+            <span className="truncate">{distance.label}</span>
+          </p>
+        )}
       </div>
 
       <div className="perforation flex items-stretch gap-2 p-4">

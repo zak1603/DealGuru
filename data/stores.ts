@@ -16,6 +16,13 @@ import type { Store } from "../lib/types";
  * blackFriday: true also lists a promo on the Black Friday page.
  * note replaces the "Ends ..." text when the end date isn't confirmed.
  *
+ * Every store needs one of these, for sorting deals by distance:
+ *   online: true        the store only sells online
+ *   branchNames: [...]  what its branches are called on OpenStreetMap. A branch
+ *                       matches when its name starts with one of these as a
+ *                       whole word, so "Game" matches "Game Menlyn" but not
+ *                       "Games Workshop". Locations download on every build.
+ *
  * Mistakes here (a duplicate id, a broken link) stop the site from building and
  * tell you which promo to fix, so a bad entry can't reach shoppers.
  */
@@ -23,6 +30,7 @@ export const stores: Store[] = [
   {
     slug: "takealot",
     name: "Takealot",
+    online: true,
     promos: [
       {
         id: "takealot-black-november",
@@ -46,6 +54,7 @@ export const stores: Store[] = [
   {
     slug: "superbalist",
     name: "Superbalist",
+    online: true,
     promos: [
       {
         id: "superbalist-black-friday",
@@ -69,6 +78,7 @@ export const stores: Store[] = [
   {
     slug: "woolworths",
     name: "Woolworths",
+    branchNames: ["Woolworths"],
     promos: [
       {
         id: "woolworths-fashion",
@@ -92,6 +102,7 @@ export const stores: Store[] = [
   {
     slug: "makro",
     name: "Makro",
+    branchNames: ["Makro"],
     promos: [
       {
         id: "makro-black-friday",
@@ -106,6 +117,7 @@ export const stores: Store[] = [
   {
     slug: "game",
     name: "Game",
+    branchNames: ["Game"],
     promos: [
       {
         id: "game-black-friday",
@@ -120,6 +132,7 @@ export const stores: Store[] = [
   {
     slug: "builders",
     name: "Builders",
+    branchNames: ["Builders Warehouse", "Builders Express", "Builders Superstore", "Builders"],
     promos: [
       {
         id: "builders-black-friday",
@@ -134,6 +147,7 @@ export const stores: Store[] = [
   {
     slug: "amazon-za",
     name: "Amazon South Africa",
+    online: true,
     promos: [
       {
         id: "amazon-early-black-friday",
@@ -149,6 +163,7 @@ export const stores: Store[] = [
   {
     slug: "bash",
     name: "Bash",
+    online: true,
     promos: [
       {
         id: "bash-black-friday",
@@ -164,6 +179,7 @@ export const stores: Store[] = [
   {
     slug: "dis-chem",
     name: "Dis-Chem",
+    branchNames: ["Dis-Chem"],
     promos: [
       {
         id: "dischem-sonicare",
@@ -188,6 +204,7 @@ export const stores: Store[] = [
   {
     slug: "hificorp",
     name: "HiFiCorp",
+    branchNames: ["HiFi Corp", "HiFi Corporation"],
     promos: [
       {
         id: "hificorp-black-november",
@@ -202,6 +219,7 @@ export const stores: Store[] = [
   {
     slug: "incredible",
     name: "Incredible",
+    branchNames: ["Incredible Connection"],
     promos: [
       {
         id: "incredible-black-november",
